@@ -22,7 +22,7 @@ Once you run the app, you can check it out at `localhost:8000`.
 Format your code:
 
 ```
-$ go fmt
+$ ./gofmt
 ```
 
 ## Running in Docker

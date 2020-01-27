@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Format all of the directories in the project.
+# TODO: Is there an easier way?
+go fmt
