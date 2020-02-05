@@ -47,6 +47,8 @@ func addSubscription(subscriptionParams SubscriptionParams) (string, error) {
 
 	fmt.Println(subscription.Id)
 
+	// Store subscription in database
+
 	return id, nil
 }
 
@@ -59,6 +61,10 @@ func addEvent(eventParams EventParams) (string, error) {
 	}
 
 	fmt.Println(event.Id)
+
+	// Store event in database?
+
+	// Alert subscribed parties
 
 	return id, nil
 }
