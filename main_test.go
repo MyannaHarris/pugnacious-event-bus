@@ -9,7 +9,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"pugnacious-event-bus/actions"
 	"pugnacious-event-bus/globalVars"
+	"pugnacious-event-bus/models"
 )
 
 func performRequest(r http.Handler, method, path string, data string) *httptest.ResponseRecorder {
@@ -40,8 +43,6 @@ func TestPostSubscriptions_ValidInput(t *testing.T) {
 	}{
 		{"Valid sqsqueue and eventkey",
 			"{\"sqsqueue\":\"test-queue\",\"eventkey\":\"test-event\"}"},
-		{"Valid sqsqueue and eventkey",
-			"{\"apiurl\":\"test-apiurl\",\"eventkey\":\"test-event\"}"},
 	}
 
 	for _, test := range tests {
@@ -71,11 +72,11 @@ func TestPostSubscriptions_InvalidInput(t *testing.T) {
 		data        string
 		expectedErr error
 	}{
-		{"Missing both sqsqueue and apiurl keys",
+		{"Missing sqsqueue key",
 			"{\"eventkey\":\"test-event\"}",
 			globalVars.MissingSubscriptionParamsErr},
-		{"Missing both sqsqueue and apiurl values",
-			"{\"sqsqueue\":\"\",\"apiurl\":\"\",\"eventkey\":\"test-event\"}",
+		{"Missing sqsqueue value",
+			"{\"sqsqueue\":\"\",\"eventkey\":\"test-event\"}",
 			globalVars.MissingSubscriptionParamsErr},
 		{"Missing eventkey key",
 			"{\"sqsqueue\":\"test-queue\"}",
@@ -87,11 +88,8 @@ func TestPostSubscriptions_InvalidInput(t *testing.T) {
 			"{}",
 			globalVars.MissingSubscriptionParamsErr},
 		{"Missing all values",
-			"{\"sqsqueue\":\"\",\"apiurl\":\"\",\"eventkey\":\"\"}",
+			"{\"sqsqueue\":\"\",\"eventkey\":\"\"}",
 			globalVars.MissingSubscriptionParamsErr},
-		{"Has both sqsqueue and apiurl values",
-			"{\"sqsqueue\":\"test-queue\",\"apiurl\":\"test-apiurl\",\"eventkey\":\"test-event\"}",
-			globalVars.TooManySubscriptionParamsErr},
 	}
 
 	for _, test := range tests {
@@ -115,6 +113,11 @@ func TestPostSubscriptions_InvalidInput(t *testing.T) {
 
 // Events API
 func TestPostEvents_ValidInput(t *testing.T) {
+	// Override SQS calls
+	orginalAlertSubscribersToEvent := actions.AlertSubscribersToEvent
+	defer func() { actions.AlertSubscribersToEvent = orginalAlertSubscribersToEvent }()
+	actions.AlertSubscribersToEvent = func(event models.Event) error { return nil }
+
 	// Grab our router
 	router := SetupRouter()
 
@@ -145,6 +148,11 @@ func TestPostEvents_ValidInput(t *testing.T) {
 }
 
 func TestPostEvents_InvalidInput(t *testing.T) {
+	// Override SQS calls
+	orginalAlertSubscribersToEvent := actions.AlertSubscribersToEvent
+	defer func() { actions.AlertSubscribersToEvent = orginalAlertSubscribersToEvent }()
+	actions.AlertSubscribersToEvent = func(event models.Event) error { return nil }
+
 	// Grab our router
 	router := SetupRouter()
 

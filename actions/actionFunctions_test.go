@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"pugnacious-event-bus/globalVars"
 	"pugnacious-event-bus/models"
 )
 
@@ -20,7 +21,6 @@ func TestAddSubscription_ValidInput(t *testing.T) {
 		{"Valid SQSQueue",
 			models.SubscriptionParams{
 				SqsQueue: "test-queue",
-				ApiUrl:   "",
 				EventKey: "test-eventkey",
 				Context:  "test-context",
 			}},
@@ -37,7 +37,15 @@ func TestAddSubscription_ValidInput(t *testing.T) {
 			t.Errorf("The UUID from AddSubscription is invalid for: %v", test)
 		}
 
+		subParamExpected := test.subscriptionParam
+
 		// Check the value stored in the database
+		if val, ok := globalVars.SubscriptionsMap[id]; ok {
+			if val.Id != id || val.SqsQueue != subParamExpected.SqsQueue || val.EventKey != subParamExpected.EventKey ||
+				val.Context != subParamExpected.Context {
+				t.Errorf("The subscription object in the database doesn't match the expected subscription object for: %v", test)
+			}
+		}
 	}
 }
 
@@ -49,21 +57,12 @@ func TestAddSubscription_InvalidInput(t *testing.T) {
 		{"Missing destination",
 			models.SubscriptionParams{
 				SqsQueue: "",
-				ApiUrl:   "",
 				EventKey: "test-eventkey",
 				Context:  "test-context",
 			}},
 		{"Missing eventKey",
 			models.SubscriptionParams{
 				SqsQueue: "test-queue",
-				ApiUrl:   "",
-				EventKey: "",
-				Context:  "test-context",
-			}},
-		{"Has both SqsQueue and ApiUrl",
-			models.SubscriptionParams{
-				SqsQueue: "test-queue",
-				ApiUrl:   "test-apiurl",
 				EventKey: "",
 				Context:  "test-context",
 			}},
@@ -79,9 +78,14 @@ func TestAddSubscription_InvalidInput(t *testing.T) {
 }
 
 func TestAddEvent_ValidInput(t *testing.T) {
+	// Override SQS calls
+	orginalAlertSubscribersToEvent := AlertSubscribersToEvent
+	defer func() { AlertSubscribersToEvent = orginalAlertSubscribersToEvent }()
+	AlertSubscribersToEvent = func(event models.Event) error { return nil }
+
 	var tests = []struct {
-		name              string
-		subscriptionParam models.EventParams
+		name       string
+		eventParam models.EventParams
 	}{
 		{"Valid Event",
 			models.EventParams{
@@ -91,7 +95,7 @@ func TestAddEvent_ValidInput(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		id, err := AddEvent(test.subscriptionParam)
+		id, err := AddEvent(test.eventParam)
 
 		if err != nil {
 			t.Errorf("AddEvent call failed for: %v", test)
@@ -101,16 +105,27 @@ func TestAddEvent_ValidInput(t *testing.T) {
 			t.Errorf("The UUID from AddEvent is invalid for: %v", test)
 		}
 
-		// Check the value stored in the database?
+		eventParamExpected := test.eventParam
 
-		// Check the subscribed parties are alerted?
+		// Check the value stored in the database
+		if val, ok := globalVars.EventsMap[id]; ok {
+			if val.Id != id || val.EventKey != eventParamExpected.EventKey ||
+				val.Context != eventParamExpected.Context {
+				t.Errorf("The subscription object in the database doesn't match the expected subscription object for: %v", test)
+			}
+		}
 	}
 }
 
 func TestAddEvent_InvalidInput(t *testing.T) {
+	// Override SQS calls
+	orginalAlertSubscribersToEvent := AlertSubscribersToEvent
+	defer func() { AlertSubscribersToEvent = orginalAlertSubscribersToEvent }()
+	AlertSubscribersToEvent = func(event models.Event) error { return nil }
+
 	var tests = []struct {
-		name              string
-		subscriptionParam models.EventParams
+		name       string
+		eventParam models.EventParams
 	}{
 		{"Missing EventKey",
 			models.EventParams{
@@ -120,7 +135,7 @@ func TestAddEvent_InvalidInput(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		_, err := AddEvent(test.subscriptionParam)
+		_, err := AddEvent(test.eventParam)
 
 		if err == nil {
 			t.Errorf("AddSubscription call succeeded but should have failed for: %v", test)
