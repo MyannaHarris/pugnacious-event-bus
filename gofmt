@@ -3,3 +3,6 @@
 # Format all of the directories in the project.
 # TODO: Is there an easier way?
 go fmt
+go fmt ./actions/*
+go fmt ./globalVars/*
+go fmt ./models/*

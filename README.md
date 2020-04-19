@@ -30,6 +30,7 @@ Run unit tests on server:
 ```
 $ go run main.go
 $ go test
+$ go test -v ./actions/*
 ```
 
 Create executable and run it:
@@ -60,7 +61,7 @@ docker run -d -p 8000:8000 pugnacious-event-bus
 * This API is currently just to ping
 
 ```
-$ ./gofmt
+$ go run main.go
 ```
 
 ```
@@ -76,7 +77,7 @@ curl http://localhost:8000
 * This API is to add a subscription in the event bus
 
 ```
-$ ./gofmt
+$ go run main.go
 ```
 
 ```
@@ -87,7 +88,7 @@ or
 
 curl --header "Content-Type: application/json" \
   --request POST \
-  --data '{"sqsqueue":"test-queue"}' \
+  --data '{"sqsqueue":"test-queue","eventkey":"test-event"}' \
   http://localhost:8000/subscriptions
 ```
 
@@ -96,7 +97,7 @@ curl --header "Content-Type: application/json" \
 * This API is to add an event to the event bus
 
 ```
-$ ./gofmt
+$ go run main.go
 ```
 
 ```
@@ -107,6 +108,6 @@ or
 
 curl --header "Content-Type: application/json" \
   --request POST \
-  --data '{"eventname":"test-event"}' \
+  --data '{"eventkey":"test-event"}' \
   http://localhost:8000/events
 ```
