@@ -1,6 +1,47 @@
 # pugnacious-event-bus
 The Event Bus for the infamous Pugnacious deployment engine.
 
+## PreReqs
+
+AWS Creds
+```
+# Use your AWS creds by running something like
+$ aws configure
+```
+
+AWS SQS Queue
+```
+# Create a Queue with open permissions 
+# or permissions at least for the account you are using the creds from above
+
+# Anyone can send messages
+"Statement": [
+	{
+		"Sid": "<Sid>",
+		"Effect": "Allow",
+		"Principal": "*",
+		"Action": "SQS:SendMessage",
+		"Resource": "arn:aws:sqs:us-east-2:<account-that-queue-is-in>:<queue-name>"
+	}
+]
+
+# Only specific accounts can send messages
+"Statement": [
+	{
+		"Sid": "<Sid>",
+		"Effect": "Allow",
+		"Principal": "<account-ID-for-above-aws-creds>",
+		"Action": "SQS:SendMessage",
+		"Resource": "arn:aws:sqs:us-east-2:<account-that-queue-is-in>:<queue-name>"
+	}
+]
+```
+
+Example reulting queue URL:
+```
+https://sqs.us-east-2.amazonaws.com/<account-ID>/<queue-name> 	
+```
+
 ## Getting started
 
 You must have Go `1.13` or later installed.
